@@ -1,0 +1,215 @@
+.H
+#ifndef VENTANA_H
+#define VENTANA_H
+#include "wxfb_project.h"
+#include <wx/msgdlg.h>
+#include <vector>
+#include <utility>
+#include <wx/string.h>
+#include <wx/image.h>
+#include <wx/dcmemory.h>
+#include <wx/bitmap.h>
+struct votos{
+	int pais;
+	int rango;
+	int voto;
+};
+class Ventana : public m_Ventana {
+	
+private:
+	std::vector<votos>lista_votos;
+	wxBitmap bitmap1;
+	wxBitmap bitmap2;
+	wxBitmap bitmap3;
+	wxBitmap bitmap4;
+	wxBitmap bitmap5;
+	wxBitmap bitmapaux;
+	wxBitmap bitmapCompuesto;
+protected:
+	void finishPressed( wxCommandEvent& event )  override;
+	void resetPressed( wxCommandEvent& event )  override;
+	void paisChoise( wxCommandEvent& event )  override;
+	void votoChoise( wxCommandEvent& event )  override;
+	
+public:
+	void resultado();
+	Ventana(wxWindow *parent=NULL);
+	~Ventana();
+};
+
+#endif
+
+.cpp
+#include "Ventana.h"
+#include <wx/msgdlg.h>
+#include <iostream>
+#include <wx/dcmemory.h>
+Ventana::Ventana(wxWindow *parent) : m_Ventana(parent) {
+	wxString rutaImagen1 = "prueba_onu.png";
+	wxImage image1(rutaImagen1, wxBITMAP_TYPE_PNG);
+	bitmap1 = wxBitmap(image1);
+	
+	wxString rutaImagen2 = "neutro.png";
+	wxImage image2(rutaImagen2, wxBITMAP_TYPE_PNG);
+	bitmap2 = wxBitmap(image2);
+	
+	wxString rutaImagen3 = "neutro.png";
+	wxImage image3(rutaImagen3, wxBITMAP_TYPE_PNG);
+	bitmap3 = wxBitmap(image3);
+	
+	wxString rutaImagen4 = "encontra.png";
+	wxImage image4(rutaImagen4, wxBITMAP_TYPE_PNG);
+	bitmap4 = wxBitmap(image4);
+	
+	wxString rutaImagen5 = "afavor.png";
+	wxImage image5(rutaImagen5, wxBITMAP_TYPE_PNG);
+	bitmap5 = wxBitmap(image5);
+	
+	wxString rutaImagenBanner = "banner_wait.png";
+	wxImage imageBanner(rutaImagenBanner, wxBITMAP_TYPE_PNG);
+	bitmapBanner = wxBitmap(imageBanner);
+	
+	wxString rutaImagenBannerA = "banner_apr.png";
+	wxImage imageBannerA(rutaImagenBannerA, wxBITMAP_TYPE_PNG);
+	bitmapBannerApr = wxBitmap(imageBannerA);
+	
+	wxString rutaImagenBannerD = "banner_des.png";
+	wxImage imageBannerD(rutaImagenBannerD, wxBITMAP_TYPE_PNG);
+	bitmapBannerDes = wxBitmap(imageBannerD);
+	
+	bitmapCompuesto = wxBitmap(600, 400);
+	wxMemoryDC dc(bitmapCompuesto);
+	dc.DrawBitmap(bitmap1, 0, 0);
+	dc.DrawBitmap(bitmap2, 155, 220);
+	dc.DrawBitmap(bitmap3, 410, 220);
+	dc.DrawBitmap(bitmapBanner, 250, 350);
+	
+	m_fondo->SetBitmap(bitmapCompuesto);
+	dc.SelectObject(wxNullBitmap);
+	
+}
+
+
+void Ventana::cargarPressed( wxCommandEvent& event )  {
+	votos v;
+	bool ya_voto = false;
+	for(size_t i=0;i<lista_votos.size();i++){
+		if(lista_votos[i].pais == m_paisChoise->GetSelection()){
+			ya_voto = true;
+		}
+	}
+	if(ya_voto == false){
+		v.pais = m_paisChoise->GetSelection();
+		v.voto = m_votoChoise->GetSelection();
+		if(v.pais == 0 or v.voto == 0){
+			wxMessageBox("No ha completado ambos campos.","ERROR");
+		}else{
+			wxMemoryDC dc;
+			if(v.pais == 2 or v.pais == 6 or v.pais == 7 or v.pais == 8 or v.pais == 13){
+				v.rango = 1;
+			} else{
+				v.rango = 2;
+			}
+			//std::cout << "El pais " << v.pais << ", votó: "<< v.voto << " con rango " << v.rango <<std::endl;
+			if (v.pais == 2) {
+				if (v.voto == 1) {
+					// Cambiar bitmap3 por bitmap5
+					bitmap3 = bitmap5;
+				}
+				else if (v.voto == 2) {
+					// Cambiar bitmap3 por bitmap4
+					bitmap3 = bitmap4;
+				}
+			}
+			else if (v.pais == 11) {
+				if (v.voto == 1) {
+					// Cambiar bitmap2 por bitmap5
+					bitmap2 = bitmap5;
+				}
+				else if (v.voto == 2) {
+					// Cambiar bitmap2 por bitmap4
+					bitmap2 = bitmap4;
+				}
+			}
+			dc.SelectObject(bitmapCompuesto);
+			dc.Clear();
+			dc.DrawBitmap(bitmap1, 0, 0);
+			dc.DrawBitmap(bitmap2, 155, 220);
+			dc.DrawBitmap(bitmap3, 410, 220);
+			dc.DrawBitmap(bitmapBanner, 250, 350);
+			dc.SelectObject(wxNullBitmap);
+			
+			m_fondo->SetBitmap(bitmapCompuesto);
+			lista_votos.push_back(v);
+			m_fondo->Refresh();
+			dc.SelectObject(wxNullBitmap);
+			
+		}
+	}else{
+		wxMessageBox("Este pais ya voto.","ERROR");
+	}
+}
+
+
+void Ventana::resetPressed( wxCommandEvent& event )  {
+	//VOLVER EL BITMAP 2 Y 3 AL ESTADO ORIGINAL
+	bitmap2 = wxBitmap(wxImage("neutro.png", wxBITMAP_TYPE_PNG));
+	bitmap3 = wxBitmap(wxImage("neutro.png", wxBITMAP_TYPE_PNG));
+	bitmapBanner = wxBitmap(wxImage("banner_wait.png", wxBITMAP_TYPE_PNG));
+	
+	// Actualizar el bitmap compuesto
+	wxMemoryDC dc(bitmapCompuesto);
+	dc.Clear();
+	dc.DrawBitmap(bitmap1, 0, 0);
+	dc.DrawBitmap(bitmap2, 155, 220);
+	dc.DrawBitmap(bitmap3, 410, 220);
+	dc.DrawBitmap(bitmapBanner, 250, 350);
+	
+	m_fondo->SetBitmap(bitmapCompuesto);
+	m_fondo->Refresh();
+	dc.SelectObject(wxNullBitmap);
+	
+	lista_votos.clear();
+	wxMessageBox("Se reseteo con exito.","SUCCESS");
+}
+
+
+void Ventana::finPressed( wxCommandEvent& event )  {
+	wxMemoryDC dc;
+	if(lista_votos.size() >= 9){
+		int afirmativos = 0;
+		bool veto = false;
+		for(size_t i=0;i<lista_votos.size();i++){ //9 votos a favor y ningun rango 1 en contra
+			if(lista_votos[i].voto == 1){
+				afirmativos++;
+			}
+			if(lista_votos[i].rango == 1){
+				if(lista_votos[i].voto == 2){
+					veto = true;
+				}
+			}
+		}
+		
+		if(afirmativos >= 9 && veto == false){
+			std::cout << "APROBADO" << std::endl;
+			bitmapBanner = bitmapBannerApr;
+		} else{
+			std::cout << "DESAPROBADO" << std::endl;
+			bitmapBanner = bitmapBannerDes;
+		}
+		dc.SelectObject(bitmapCompuesto);
+		dc.Clear();
+		dc.DrawBitmap(bitmap1, 0, 0);
+		dc.DrawBitmap(bitmap2, 155, 220);
+		dc.DrawBitmap(bitmap3, 410, 220);
+		dc.DrawBitmap(bitmapBanner, 250, 350);
+		dc.SelectObject(wxNullBitmap);
+		
+		m_fondo->SetBitmap(bitmapCompuesto);
+		m_fondo->Refresh();
+		dc.SelectObject(wxNullBitmap);
+		
+	}else{
+		std::cout << "NO SE LLEGO AL MINIMO DE VOTOS" << std::endl;
+	}
+}
